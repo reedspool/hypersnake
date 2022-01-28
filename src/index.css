@@ -1,0 +1,105 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    html, body {
+        z-index: 0;
+        height: 100%;
+        width: 100%;
+        overflow: hidden;
+
+        @apply flex flex-row justify-center items-center
+            relative
+        ;
+    }
+}
+
+@layer components {
+    .cpnt-field {
+        @apply flex flex-col justify-evenly items-stretch
+            border border-gray-500
+        ;
+
+        height: min(85vh, 85vw);
+        width: min(85vh, 85vw);
+    }
+
+    .cpnt-field__row {
+        @apply flex flex-row justify-evenly items-stretch h-full w-full;
+    }
+
+    .cpnt-field__cell {
+        @apply flex flex-row justify-center items-center h-full w-full
+          /* border border-black */
+        ;
+    }
+
+    .cpnt-field__cell--snake {
+        @apply bg-green-400;
+    }
+
+    .cpnt-field__cell--snake-head {
+         @apply bg-green-800;
+    }
+
+    .cpnt-field__cell--apple {
+         @apply bg-red-500 rounded-xl;
+    }
+
+    .cpnt-score {
+        @apply flex flex-row justify-between items-baseline px-1;
+    }
+
+    .cpnt-toolbar {
+        z-index: 2;
+        @apply relative flex flex-row justify-between items-baseline px-1 underline text-blue-600;
+    }
+
+    .cpnt-click-target {
+        z-index: 1;
+        height: max(150vh, 150vw);
+        width: max(150vh, 150vw);
+        overflow: hidden;
+
+        transform-origin: center;
+        transform:
+            translate(-50%, -50%)
+            rotate(-45deg)
+        ;
+        @apply absolute top-1/2 left-1/2;
+    }
+
+    .cpnt-click-target__left,
+    .cpnt-click-target__up,
+    .cpnt-click-target__right,
+    .cpnt-click-target__down {
+        @apply absolute opacity-70 h-1/2 w-1/2;
+
+        overflow: hidden;
+    }
+
+    .cpnt-click-target__left {
+        @apply bottom-1/2 right-1/2
+          /* bg-red-100 */
+          ;
+    }
+
+    .cpnt-click-target__up {
+        @apply bottom-1/2 left-1/2
+          /* bg-blue-100 */
+          ;
+    }
+
+    .cpnt-click-target__right {
+        @apply top-1/2 left-1/2
+          /* bg-green-100 */
+          ;
+    }
+
+    .cpnt-click-target__down {
+        @apply top-1/2 right-1/2
+          /* bg-purple-100 */
+          ;
+    }
+}

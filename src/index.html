@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en-US">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title><%= htmlWebpackPlugin.options.title %></title>
+    <meta name="description" content="">
+    <meta name="viewport" content=
+    "width=device-width, initial-scale=1">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <script type="text/hyperscript">
+    </script>
+</head>
+<body script="
+
+def index(row, col)
+  return (row * $cols) + col
+end
+
+def in_bounds
+  return $snakeX < $cols and
+         $snakeX >= 0 and
+         $snakeY < $rows and
+         $snakeY >= 0
+end
+
+init
+  set the $cols to 31
+  set the $rows to 31
+  set the $snakeX to 8
+  set the $snakeY to 6
+  set the $beginSnakeLength to 10
+  set the $score to 0
+  set the $turnBuffer to []
+  set the $segments to []
+  set the $direction to 'right'
+
+  call localStorage.getItem('high_score')
+  set $highScore to parseInt(the result)
+  if Number.isNaN($highScore)
+    log `Resetting high score, could not parse '${highScore}'`
+    set $highScore to 0
+  end
+  send update_score
+
+  set field to []
+  repeat $rows times index row
+    append `<div class='cpnt-field__row'>` to field
+    repeat $cols times index col
+      append `<div class='cpnt-field__cell' data-row='${row}' data-col='${col}'>` to field
+--      append `<span>${index(row, col)}</span>` to field
+      append `</div>` to field
+    end
+    append `</div>` to field
+  end
+  put field.join('') into innerHTML of .cpnt-field
+  set $cells to .cpnt-field__cell in .cpnt-field
+  send restart
+
+on keydown[key in ['ArrowUp', 'w', 'k']]
+  send snake_turn(direction: 'up')
+
+on keydown[key in ['ArrowDown', 's', 'j']]
+  send snake_turn(direction: 'down')
+
+on keydown[key in ['ArrowLeft', 'a', 'h']]
+  send snake_turn(direction: 'left')
+
+on keydown[key in ['ArrowRight', 'd', 'l']]
+  send snake_turn(direction: 'right')
+
+on keydown[key is 'r']
+  send restart
+
+on snake_turn(direction)
+  if $turnBuffer.length is 2 then halt end
+  $turnBuffer.push(direction)
+
+on snake_move
+  set direction to $turnBuffer.shift()
+  if direction
+    if direction is 'down' and $direction is 'up' then halt end
+    if direction is 'up' and $direction is 'down' then halt end
+    if direction is 'right' and $direction is 'left' then halt end
+    if direction is 'left' and $direction is 'right' then halt end
+    set $direction to direction
+  end
+
+  if $direction is 'up' then decrement $snakeY end
+  if $direction is 'down' then increment $snakeY end
+  if $direction is 'left' then decrement $snakeX end
+  if $direction is 'right' then increment $snakeX end
+  if not in_bounds()
+    send game_end
+    halt
+  end
+  set nxt to $cells[index($snakeY, $snakeX)]
+  if nxt in $segments
+    send game_end
+    halt
+  end
+
+  if nxt is $apple
+    log 'Scored!'
+    increment $snakeLength by 10
+    increment $score
+    send update_score
+    send spawn_apple
+  end
+
+  add .cpnt-field__cell--snake to nxt
+  add .cpnt-field__cell--snake-head to nxt
+  remove .cpnt-field__cell--snake-head from first of $segments
+  $segments.unshift(nxt)
+  if $segments.length >= $snakeLength
+    remove .cpnt-field__cell--snake from $segments.pop()
+  end
+
+on restart
+  set $snakeX to Math.floor($cols / 2)
+  set $snakeY to Math.round($rows / 1.618)
+  set $direction to 'up'
+  remove .cpnt-field__cell--snake from $cells
+  remove .cpnt-field__cell--snake-head from $cells
+  set start to $cells[index($snakeY, $snakeX)]
+  add .cpnt-field__cell--snake to start
+  add .cpnt-field__cell--snake-head to start
+  set $snakeLength to $beginSnakeLength
+  set $score to 0
+  send update_score
+  set $segments to [ start ]
+  send spawn_apple
+  send run
+--  send play_erratically
+
+on spawn_apple
+  if $apple then remove .cpnt-field__cell--apple from $apple end
+  set $apple to random in $cells
+  repeat while $apple in $segments
+    set $apple to random in $cells
+  end
+  add .cpnt-field__cell--apple to $apple
+
+on run
+  repeat until game_end
+    wait 50ms
+    send snake_move
+  end
+
+on play_erratically
+  repeat until game_end
+    wait (Math.random() * 500) ms
+    send snake_turn(direction: random in ['up', 'down', 'left', 'right'])
+  end
+
+on update_score
+  log `Score: ${$score}`
+  if $score > $highScore
+    log 'New High Score!'
+    set $highScore to $score
+    localStorage.setItem('high_score', $highScore)
+  end
+  put $score into .cpnt-score__current-score
+  put $highScore into .cpnt-score__high-score
+
+on every game_end
+  send restart
+              ">
+    <main>
+        <div class="cpnt-score">
+            <span class="cpnt-score__current-score-container">
+                Score:&nbsp;
+                <span class="cpnt-score__current-score">0</span>
+            </span>
+            <span class="cpnt-score__high-score-container">
+                High Score:&nbsp;
+                <span class="cpnt-score__high-score">0</span>
+            </span>
+        </div>
+        <div class="cpnt-field"></div>
+        <div class="cpnt-toolbar">
+            <button class="cpnt-toolbar__restart"
+                    script="
+                           on click
+                             send restart to <body />
+                           ">Restart (r)</button>
+            <button class="cpnt-toolbar__reset"
+                    script="
+                           on click
+                             set $highScore to 0
+                             localStorage.setItem('high_score', $highScore)
+                             send restart to <body />
+                           ">Reset High Score</button>
+        </div>
+        <div class="cpnt-click-target">
+            <div class="cpnt-click-target__left" script="on click send snake_turn(direction: 'left')"></div>
+            <div class="cpnt-click-target__up" script="on click send snake_turn(direction: 'up')"></div>
+            <div class="cpnt-click-target__right" script="on click send snake_turn(direction: 'right')"></div>
+            <div class="cpnt-click-target__down" script="on click send snake_turn(direction: 'down')"></div>
+        </div>
+    </main>
+</body>
+</html>
