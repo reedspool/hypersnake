@@ -79,10 +79,10 @@ on snake_turn(direction)
 on snake_move
   set direction to $turnBuffer.shift()
   if direction
-    if the direction is 'down' and the $direction is 'up' then halt end
-    if the direction is 'up' and the $direction is 'down' then halt end
-    if the direction is 'right' and the $direction is 'left' then halt end
-    if the direction is 'left' and the $direction is 'right' then halt end
+    if direction is 'down' and $direction is 'up' then halt end
+    if direction is 'up' and $direction is 'down' then halt end
+    if direction is 'right' and $direction is 'left' then halt end
+    if direction is 'left' and $direction is 'right' then halt end
     set $direction to direction
   end
 
